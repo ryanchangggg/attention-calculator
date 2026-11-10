@@ -1,0 +1,6 @@
+import assert from 'node:assert/strict';
+import {Q,parse,construct,integrand} from './engine.js';
+assert.equal(parse('-0.125').str(),'-1/8');assert.throws(()=>parse('1/0'));assert.throws(()=>parse('alert(1)'));
+const cases=[['pi','1','<','22/7',22/7-Math.PI],['pi','1','>','25/8',Math.PI-25/8],['pi','1','<','355/113',355/113-Math.PI],['e','1','<','25/9',25/9-Math.E],['exp','3','>','20',Math.exp(3)-20],['exp','-1','>','1/3',Math.exp(-1)-1/3],['log','3','<','10/9',10/9-Math.log(3)],['log','1/2','>','-7/10',Math.log(.5)+.7],['atan','1','>','3/4',Math.PI/4-.75],['atan','-1','<','-3/4',Math.PI/4-.75]];
+for(let [type,param,direction,bound,expected] of cases){let p=construct({type,param,direction,bound});let N=10000,sum=0;for(let i=0;i<=N;i++){let y=integrand(p,i/N);assert.ok(y>=-1e-12);sum+=y*(i===0||i===N?1:i%2?4:2)}sum/=3*N;assert.ok(Math.abs(sum-expected)<1e-9,`${type}: ${sum} != ${expected}`);console.log(`${type}(${param}) ${direction} ${bound}: exact certificate + independent quadrature passed (m=${p.m}, n=${p.n})`)}
+assert.throws(()=>construct({type:'pi',bound:'4',direction:'>',limit:6}),/未找到/);assert.throws(()=>construct({type:'log',param:'0'}),/对数参数/);console.log('All checks passed.');
